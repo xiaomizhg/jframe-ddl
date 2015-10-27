@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+	">
+
+	<!-- 数据源 -->
+	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="org.h2.Driver" />
+		<!-- <property name="url" value="jdbc:mysql://10.160.0.5:3307/test" /> -->
+		<property name="url"
+			value="jdbc:h2:file:D:/database/h2-data/sample;MODE=MySQL" />
+		<property name="username" value="sa" />
+		<property name="password" value="" />
+	</bean>
+
+	<!-- mybatis FactoryBean -->
+	<bean id="sqlSessionFactory" class="com.sitech.jframe.ddl.spring.support.DistributedSqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="configLocation" value="classpath:mybatis-config.xml" />
+	</bean>
+
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.sitech.jframe.ddl.demo.sqlmap" />
+	</bean>
+
+	<!-- 事务管理器 -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<!-- 事务管理advice通知 -->
+	<!-- <bean id="transactionInterceptor" class="org.springframework.transaction.interceptor.TransactionInterceptor"> 
+		<property name="transactionManager">事务管理器 <ref bean="transactionManager" 
+		/> </property> <property name="transactionAttributes"> <props> <prop key="save*">PROPAGATION_REQUIRED,ISOLATION_DEFAULT,-Exception 
+		</prop> <prop key="add*">PROPAGATION_REQUIRED,ISOLATION_DEFAULT,-Exception 
+		</prop> <prop key="create*">PROPAGATION_REQUIRED,ISOLATION_DEFAULT,-Exception 
+		</prop> <prop key="insert*">PROPAGATION_REQUIRED,ISOLATION_DEFAULT,-Exception 
+		</prop> <prop key="update*">PROPAGATION_REQUIRED,ISOLATION_DEFAULT,-Exception 
+		</prop> <prop key="merge*">PROPAGATION_REQUIRED,ISOLATION_DEFAULT,-Exception 
+		</prop> <prop key="del*">PROPAGATION_REQUIRED,ISOLATION_DEFAULT,-Exception 
+		</prop> <prop key="remove*">PROPAGATION_REQUIRED,ISOLATION_DEFAULT,-Exception 
+		</prop> <prop key="put*">PROPAGATION_REQUIRED,ISOLATION_DEFAULT,-Exception 
+		</prop> <prop key="get*">PROPAGATION_SUPPORTS,ISOLATION_DEFAULT,readOnly,-Exception 
+		</prop> <prop key="count*">PROPAGATION_SUPPORTS,ISOLATION_DEFAULT,readOnly,-Exception 
+		</prop> <prop key="find*">PROPAGATION_SUPPORTS,ISOLATION_DEFAULT,readOnly,-Exception 
+		</prop> <prop key="list*">PROPAGATION_SUPPORTS,ISOLATION_DEFAULT,readOnly,-Exception 
+		</prop> <prop key="*">PROPAGATION_SUPPORTS,ISOLATION_DEFAULT,-Exception </prop> 
+		</props> </property> </bean> -->
+
+	<!-- transaction 的切面， 包括一个pointcut切入点与一个advice通知 -->
+	<!-- <bean id="transactionAdvisor" class="org.springframework.transaction.interceptor.TransactionAttributeSourceAdvisor"> 
+		<property name="transactionInterceptor" ref="transactionInterceptor" /> </bean> -->
+
+	<!-- beanName 自动代理创建器 -->
+	<!-- <bean class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator"> 
+		<property name="beanNames"> Svc 与 WS 结尾的 spring bean 控制事务 <value>*Svc, *WS</value> 
+		</property> <property name="interceptorNames"> <list> <value>transactionAdvisor</value> 
+		事务控制 </list> </property> </bean> -->
+
+
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="save*" propagation="REQUIRED" />
+			<tx:method name="add*" propagation="REQUIRED" />
+			<tx:method name="create*" propagation="REQUIRED" />
+			<tx:method name="insert*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+			<tx:method name="merge*" propagation="REQUIRED" />
+			<tx:method name="del*" propagation="REQUIRED" />
+			<tx:method name="remove*" propagation="REQUIRED" />
+			<tx:method name="put*" propagation="REQUIRED" />
+			<tx:method name="get*" propagation="SUPPORTS" read-only="true" />
+			<tx:method name="count*" propagation="SUPPORTS" read-only="true" />
+			<tx:method name="find*" propagation="SUPPORTS" read-only="true" />
+			<tx:method name="list*" propagation="SUPPORTS" read-only="true" />
+			<tx:method name="*" propagation="SUPPORTS" read-only="true" />
+		</tx:attributes>
+	</tx:advice>
+	<aop:config>
+		<aop:pointcut id="txPointcut" expression="execution(* com.sitech..*.*(..))" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="txPointcut" />
+	</aop:config>
+
+
+</beans>

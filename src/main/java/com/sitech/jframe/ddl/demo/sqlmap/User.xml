@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sitech.jframe.ddl.demo.sqlmap.UserMapper">
+
+	<sql id="userColumns">id, name</sql>
+	
+	
+	<resultMap type="map" id="userResultMap">
+		<result property="id" column="id"/>
+		<result property="name" column="name"/>
+	</resultMap>
+	
+	
+	<select id="selectUser" parameterType="com.sitech.jframe.ddl.demo.dto.User"  resultType="com.sitech.jframe.ddl.demo.dto.User">
+		select <include refid="userColumns"/> from user
+		<where>
+			<if test="id != null">
+				AND id = #{id}
+			</if>
+			<if test="name != null">
+				AND name = #{name}
+			</if>
+		</where>
+		ORDER BY ${orderColumn}
+	</select>
+	
+	<select id="selectUser1" parameterType="com.sitech.jframe.ddl.demo.dto.User"  resultMap="userResultMap">
+		select <include refid="userColumns"/> from user
+		<where>
+			<if test="id != null">
+				AND id = #{id}
+			</if>
+			<if test="name != null">
+				AND name = #{name}
+			</if>
+		</where>
+	</select>
+	
+	<insert id="insertUser" parameterType="com.sitech.jframe.ddl.demo.dto.User">
+		insert into user(id, name) 
+			values (#{id}, #{name})
+	</insert>
+	
+	<delete id="deleteUser">
+	 	delete user
+	</delete>
+	
+</mapper>

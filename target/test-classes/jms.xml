@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+	">
+	
+	<!-- activeMQ 提供的连接工厂 -->
+	<bean id="targetConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<property name="brokerURL" value="failover:(tcp://137.64.43.116:10001,tcp://137.64.43.119:10001)"/>
+	</bean>
+	
+	<!-- activeMQ 提供的池化  ConnectionFactory -->
+	<bean id="connectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory" destroy-method="stop">
+		<property name="connectionFactory" ref="targetConnectionFactory"/>
+	</bean>
+	
+	
+	<!-- JMS 消息发送者 -->
+	<bean id="jmsProducer" class="com.sitech.jframe.context.mq.producer.JmsProducer">
+		<property name="connectionFactory" ref="connectionFactory"/>
+		<!--(connection.createSession(true, Session.SESSION_TRANSACTED);) -->
+		<property name="sessionTransacted" value="true"/>
+		<property name="serializers" ref="serializers"/>
+	</bean>
+	
+	
+	<!-- JMS 消息消费者 -->
+	<bean class="com.sitech.jframe.context.mq.consumer.DynamicMessageListenerContainer">
+		<property name="connectionFactory" ref="connectionFactory"/>
+		<property name="sessionTransacted" value="true"/>
+		<property name="serializers" ref="serializers"/>
+		<property name="messageListenerNames">
+			<set>
+				<!-- <value>demoConsumer</value> -->
+			</set>
+		</property>
+	</bean>
+	
+	<bean id="demoConsumer" class="com.sitech.jframe.context.mq.consumer.JmsConsumerDemo"></bean>
+	
+	
+	
+</beans>
